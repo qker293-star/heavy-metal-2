@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HEAVY METAL 2</title>
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-blur: blur(25px);
+            --text-main: rgba(255, 255, 255, 0.95);
+            --text-sub: rgba(255, 255, 255, 0.6);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            user-select: none;
+            cursor: default;
+        }
+
+        body {
+            background-color: #000;
+            color: var(--text-main);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('ava.jpg');
+            background-size: cover;
+            background-position: center;
+            z-index: -2;
+            filter: blur(20px);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%);
+            z-index: -1;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 40px 60px;
+            display: flex;
+            justify-content: flex-end;
+            z-index: 100;
+        }
+
+        .player-module {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            padding: 10px 20px;
+            border-radius: 99px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .player-module:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: scale(1.02);
+        }
+
+        .mute-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .mute-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: #fff;
+            opacity: 0.8;
+        }
+
+        .volume-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border-radius: 50%;
+        }
+
+        @keyframes iosVibrate {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            50% { transform: translateX(3px); }
+            100% { transform: translateX(0); }
+        }
+        .player-vibrate { animation: iosVibrate 0.25s linear; border-color: rgba(255, 59, 48, 0.3) !important; }
+
+        @keyframes iosUnmute {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .player-unmute { animation: iosUnmute 0.3s ease-out; }
+
+        .glass-plate {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            border-radius: 24px;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.01) 50%, rgba(255,255,255,0.1) 100%);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.5), inset 0 0 20px rgba(255,255,255,0.05);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .glass-plate img {
+            width: 96%;
+            height: 96%;
+            object-fit: cover;
+            border-radius: 20px;
+            filter: brightness(0.9) contrast(1.1);
+            transform: scale(1.05);
+        }
+
+        .glass-plate::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(110deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.05) 100%);
+            pointer-events: none;
+        }
+
+        .content-info {
+            text-align: center;
+            margin-top: 30px;
+            z-index: 10;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .soon {
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text-sub);
+        }
+
+        .watermark {
+            position: fixed;
+            bottom: 25px;
+            right: 30px;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        #lock-modal {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            padding: 25px 35px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+        #lock-modal.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        #lock-modal svg { width: 30px; fill: #fff; }
+        #lock-modal span { font-size: 11px; letter-spacing: 2px; color: #fff; }
+
+    </style>
+</head>
+<body>
+
+    <audio id="bgm" loop preload="auto">
+        <source src="intro.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="background"></div>
+    <div class="overlay"></div>
+
+    <header>
+        <div class="player-module" id="player-module">
+            <div class="mute-btn" id="mute-btn">
+                <svg id="icon-on" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                <svg id="icon-off" viewBox="0 0 24 24" style="display:none;"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+            </div>
+            <input type="range" class="volume-slider" id="volume-slider" min="0" max="1" step="0.01" value="0.7">
+        </div>
+    </header>
+
+    <div class="glass-plate">
+        <img src="ava.jpg" alt="Art">
+    </div>
+
+    <div class="content-info">
+        <div class="title">Heavy Metal 2</div>
+        <div class="soon">soon</div>
+    </div>
+
+    <div class="watermark">arter1ahall</div>
+
+    <div id="lock-modal">
+        <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
+        <span>ДОСТУП ОГРАНИЧЕН</span>
+    </div>
+
+    <script>
+        const bgm = document.getElementById('bgm');
+        const muteBtn = document.getElementById('mute-btn');
+        const playerModule = document.getElementById('player-module');
+        const iconOn = document.getElementById('icon-on');
+        const iconOff = document.getElementById('icon-off');
+        const volumeSlider = document.getElementById('volume-slider');
+        const lockModal = document.getElementById('lock-modal');
+
+        let isMuted = false;
+        let lockTimer = null;
+
+        const startMusic = () => {
+            bgm.volume = volumeSlider.value;
+            bgm.play().catch(() => {});
+            document.removeEventListener('click', startMusic);
+        };
+        document.addEventListener('click', startMusic);
+
+        muteBtn.addEventListener('click', () => {
+            playerModule.classList.remove('player-vibrate', 'player-unmute');
+            void playerModule.offsetWidth;
+
+            if (!isMuted) {
+                bgm.muted = true;
+                iconOn.style.display = 'none';
+                iconOff.style.display = 'block';
+                playerModule.classList.add('player-vibrate');
+                isMuted = true;
+            } else {
+                bgm.muted = false;
+                iconOff.style.display = 'none';
+                iconOn.style.display = 'block';
+                playerModule.classList.add('player-unmute');
+                isMuted = false;
+            }
+        });
+
+        volumeSlider.addEventListener('input', (e) => {
+            bgm.volume = e.target.value;
+        });
+
+        const handleLock = (e) => {
+            e.preventDefault();
+            lockModal.classList.add('show');
+            clearTimeout(lockTimer);
+            lockTimer = setTimeout(() => lockModal.classList.remove('show'), 1200);
+        };
+        window.addEventListener('wheel', handleLock, { passive: false });
+        window.addEventListener('touchmove', handleLock, { passive: false });
+    </script>
+</body>
+</html>
